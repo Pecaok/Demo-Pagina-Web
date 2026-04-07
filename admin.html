@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Demo Admin • Plantilla</title>
+<style>
+/* ============================================================
+   ESTILOS GLOBALES (Sin cambios)
+=============================================================== */
+:root{ --primary: #625A45; --text: #111; --muted: #666; --bg: #f8f9fa; --card: #ffffff; --ring: #e0e0e0; --shadow: 0 4px 20px rgba(0,0,0,0.05); --header-h: 70px; --good: #2e7d32; --warn: #f57c00; --bad: #d32f2f; --radius: 16px; }
+*{box-sizing:border-box}
+html,body{ margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; -webkit-font-smoothing: antialiased; }
+header { position: sticky; top: 0; z-index: 100; background: #fff; height: var(--header-h); border-bottom: 1px solid rgba(0,0,0,0.08); box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+.topbar { max-width: 1200px; margin: 0 auto; height: 100%; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); font-weight: 800; font-size: 18px; letter-spacing: -0.5px; }
+.brand span.emoji { font-size: 24px; }
+.nav-right { display: flex; align-items: center; gap: 8px; }
+.nav-link { text-decoration: none; color: var(--muted); font-weight: 600; font-size: 14px; padding: 8px 12px; border-radius: 8px; transition: all 0.2s; }
+.nav-link:hover { background: #f0f0f0; color: var(--text); }
+.nav-link.active { background: var(--bg); color: var(--text); box-shadow: inset 0 0 0 1px #eee; }
+main { max-width: 1200px; margin: 30px auto; padding: 0 20px; display: grid; gap: 24px; }
+.card { background: var(--card); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--ring); }
+.card.featured { border: 2px solid var(--primary); background: #fffcf8; }
+.store-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px; }
+.pill { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+.pill.ok { background: #e8f5e9; color: var(--good); border: 1px solid #c8e6c9; }
+.pill.off { background: #f5f5f5; color: #777; border: 1px solid #e0e0e0; }
+.pill.blue { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
+.pill.warn { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+.mini-btn { border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+.mini-btn:hover { opacity: 0.9; }
+.mini-btn.good { background: var(--good); color: white; }
+.mini-btn.bad { background: #ffebee; color: var(--bad); border:1px solid #ffcdd2; }
+.mini-btn.primary { background: var(--primary); color: white; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
+label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: #444; }
+input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--ring); background: #fff; font-size: 14px; font-family: inherit; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(98,90,69, 0.1); }
+.check-row { display: flex; align-items: center; gap: 8px; background: #f9f9f9; padding: 8px 12px; border-radius: 8px; border: 1px solid #eee; cursor: pointer; font-size: 13px; font-weight: 600; color: #555; transition: all 0.2s; }
+.check-row:hover { background: #fff; border-color: var(--primary); color: var(--primary); }
+.check-row input { width: auto; margin: 0; cursor: pointer; accent-color: var(--primary); }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.2s; }
+.btn.primary { background: var(--primary); color: #fff; }
+.btn.good { background: #e8f5e9; color: var(--good); border-color: #c8e6c9; }
+.btn.warn { background: #fff3e0; color: #e65100; border-color: #ffe0b2; }
+.btn.bad { background: #ffebee; color: var(--bad); border-color: #ffcdd2; }
+.table-container { overflow-x: auto; margin-top: 15px; }
+table { width: 100%; border-collapse: collapse; min-width: 600px; }
+th { text-align: left; padding: 12px; font-size: 12px; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid #eee; }
+td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; font-size: 14px; }
+.img-preview { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; background: #eee; }
+h2 { font-size: 20px; margin: 0 0 10px 0; color: var(--text); }
+.muted { color: var(--muted); }
+.text-small { font-size: 13px; }
+.search-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+.search-input { flex: 1; min-width: 200px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--ring); background: #fff; font-size: 14px; }
+.filter-tabs { display: flex; gap: 6px; }
+.filter-tab { padding: 8px 14px; border-radius: 8px; background: #fff; border: 1px solid var(--ring); color: #666; font-weight: 600; font-size: 13px; cursor: pointer; }
+.filter-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+#orderGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 16px; margin-top: 20px; }
+.orderCard { background: #fff; border: 1px solid #eee; border-radius: 12px; overflow: hidden; cursor: grab; transition: transform 0.2s; }
+.orderCard:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+.orderCard.dragging { opacity: 0.5; border: 2px dashed var(--primary); }
+.tile { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fff; border-bottom: 1px solid #eee; }
+.tile:last-child { border-bottom: none; }
+.side-pill { display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 8px; background: #fff; border-radius: 10px; border: 1px solid #eee; }
+.side-pill.off { opacity: 0.6; background: #f5f5f5; }
+@media (max-width: 900px) { .topbar { padding: 0 15px; } .nav-right { display: none; } .search-bar { flex-direction: column; } .filter-tabs { overflow-x: auto; padding-bottom: 5px; } }
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="topbar">
+    <a class="brand" href="#">
+      <span class="emoji">🍔</span>
+      <span>Demo Admin</span>
+    </a>
+
+    <nav class="nav-right">
+      <a class="nav-link active" href="#">Admin</a>
+      <a class="nav-link" href="#" onclick="alert('DEMO: Pantalla desactivada')">Stock</a>
+      <a class="nav-link" href="#" onclick="alert('DEMO: Pantalla desactivada')">Finanzas</a>
+      <a class="nav-link" href="#" onclick="alert('DEMO: Pantalla desactivada')">Pedidos</a>
+      <a class="nav-link" href="#" onclick="alert('DEMO: Pantalla desactivada')">Mostrador</a>
+      <a class="nav-link" href="#" onclick="alert('DEMO: Pantalla desactivada')">📊 Gerencia</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="card" style="border-left: 4px solid var(--primary);">
+  <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h2>Estado de la Tienda</h2>
+      <div id="storeSub" class="text-small muted">Operación normal</div>
+    </div>
+    <div id="storePill" class="pill ok">ABIERTO</div>
+  </div>
+
+  <div class="store-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:30px;">
+    
+    <div style="background:#f9f9f9; padding:15px; border-radius:12px; border:1px solid #eee;">
+      <h3 style="margin-top:0; font-size:16px;">⚡ Control Diario</h3>
+      <p class="text-small muted">Abrir o cerrar manualmente ahora mismo.</p>
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button class="btn good" id="btnSimpleOpen" style="flex:1;">Abrir Tienda</button>
+        <button class="btn bad" id="btnSimpleClose" style="flex:1;">Cerrar Tienda</button>
+      </div>
+      <button class="btn" id="btnResetStore" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd; width:100%; margin-top:15px;">
+        🔄 Restablecer a Automático
+      </button>
+    </div>
+
+    <div style="background:#fff5f5; padding:15px; border-radius:12px; border:1px solid #ffcdd2;">
+      <h3 style="margin-top:0; font-size:16px; color:#d32f2f;">🛠️ Configurar Cierre Especial</h3>
+      <p class="text-small muted">Seleccioná fechas y motivo de cierre.</p>
+      
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+        <input id="maintTitle" type="text" placeholder="Título Opcional" style="border:1px solid #ffcdd2; font-weight:700;">
+        <input id="maintMsg" type="text" placeholder="Mensaje adicional (Ej: Volvemos el Lunes)" style="border:1px solid #ffcdd2;">
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <div><label style="font-size:11px;">Desde:</label><input id="maintFrom" type="datetime-local" style="font-size:12px;"></div>
+            <div><label style="font-size:11px;">Hasta:</label><input id="maintTo" type="datetime-local" style="font-size:12px;"></div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:5px;">
+            <button class="btn" id="btnSetVacation" style="flex:1; background:#e0f7fa; color:#006064; border:1px solid #b2ebf2; font-size:13px;">✈️ Vacaciones</button>
+            <button class="btn warn" id="btnSetMaint" style="flex:1; font-size:13px;">🛠️ Mantenimiento</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>Configuración de Precios (Extras)</h2>
+        <div class="pill blue">Globales</div>
+    </div>
+    <p class="muted" style="margin-bottom:15px">Definí el valor que se suma al agregar estos extras.</p>
+    
+    <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr auto;">
+        <div><label>Precio Extra Carne ($)</label><input id="pricePatty" type="number" value="2500"></div>
+        <div><label>Precio Extra Cheddar ($)</label><input id="priceCheddar" type="number" value="500"></div>
+        <div><label>Precio Aros de Cebolla ($)</label><input id="priceOnionRings" type="number" value="1600"></div>
+        <div style="display:flex; align-items:flex-end;">
+            <button id="btnSaveExtras" class="btn primary" style="height:42px;">Guardar Precios</button>
+        </div>
+    </div>
+</section>
+
+<section class="card featured">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+    <h2>Gestión de Productos</h2>
+    <div class="pill off" style="font-weight:normal; background:#fff; border:1px solid #ddd">Modo Editor</div>
+  </div>
+   
+  <p class="muted" style="margin-bottom:20px">Agregá, editá y gestioná el catálogo completo.</p>
+
+  <div class="form-grid">
+    <div><label>ID (único)</label><input id="prdId" type="text" placeholder="Ej: bigjohn_simple"></div>
+    <div><label>Nombre</label><input id="prdName" type="text" placeholder="Nombre del producto"></div>
+    <div><label>Categoría</label>
+      <select id="prdCategory">
+        <option value="hamburguesas">Hamburguesas</option>
+        <option value="sandwiches">Sándwiches</option>
+        <option value="bebidas">Bebidas</option>
+        <option value="guarniciones">Guarniciones</option>
+      </select>
+    </div>
+    <div><label>Precio</label><input id="prdPrice" type="number" min="0" step="1" placeholder="Ej: 4800"></div>
+    <div><label>Imagen (URL)</label><input id="prdImg" type="text" placeholder="https://..."></div>
+    
+    <div>
+        <label>Extras Permitidos</label>
+        <div style="display:flex; gap:10px; margin-top:5px">
+            <label class="check-row"><input type="checkbox" id="prdExPatty"> 🥩 Carne</label>
+            <label class="check-row"><input type="checkbox" id="prdExCheddar"> 🧀 Cheddar</label>
+        </div>
+    </div>
+
+    <div id="potatoOptionsGroup" style="grid-column:1/-1; display:none; background:#fefce8; padding:15px; border-radius:10px; border:1px solid #fde68a; margin-top: 5px;">
+        <label style="color:#b45309; margin-bottom:8px;">Variantes de Papas Permitidas</label>
+        <div style="display:flex; gap:10px; flex-wrap:wrap">
+            <label class="check-row" style="background:#fff;"><input type="checkbox" id="prdOptSazon"> 🍟 Sazonadas</label>
+            <label class="check-row" style="background:#fff;"><input type="checkbox" id="prdOptSal"> 🧂 Con Sal</label>
+            <label class="check-row" style="background:#fff;"><input type="checkbox" id="prdOptSinSal"> 🥔 Sin Sal</label>
+        </div>
+    </div>
+
+    <div style="grid-column:1/-1">
+      <label>Descripción</label>
+      <textarea id="prdDesc" rows="3" placeholder="Descripción corta…"></textarea>
+    </div>
+  </div>
+
+  <div class="row">
+    <button class="btn primary" id="btnSaveProduct">Guardar / Actualizar</button>
+    <button class="btn bad" id="btnClearProduct" style="background:transparent; color:#d32f2f; border:1px solid #ffcdd2">Limpiar</button>
+  </div>
+
+  <div style="height:1px; background:#eee; margin:25px 0"></div>
+
+  <h3>Listado Actual</h3>
+
+  <div class="search-bar">
+      <input type="text" id="prdSearch" class="search-input" placeholder="🔍 Buscar por nombre o ID...">
+      <div class="filter-tabs" id="prdFilters">
+          <div class="filter-tab active" data-f="all">Todos</div>
+          <div class="filter-tab" data-f="hamburguesas">Burgers</div>
+          <div class="filter-tab" data-f="sandwiches">Sándwiches</div>
+          <div class="filter-tab" data-f="bebidas">Bebidas</div>
+          <div class="filter-tab" data-f="guarniciones">Papas</div>
+      </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>IMG</th><th>Nombre</th><th>Cat.</th><th>Precio</th><th>Extras</th><th>Estado</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="prdTable"></tbody>
+    </table>
+  </div>
+</section>
+
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap:24px;">
+  <section class="card">
+    <h2>Orden Visual</h2>
+    <p class="muted">Arrastrá las tarjetas para ordenar en el menú.</p>
+    <div class="row" id="orderCatButtons" style="margin-bottom:15px; background:#f5f5f5; padding:4px; border-radius:10px; display:inline-flex;">
+      <button class="mini-btn primary" data-cat="hamburguesas">Burgers</button>
+      <button class="mini-btn" data-cat="sandwiches" style="color:#555; background:transparent">Sándwiches</button>
+      <button class="mini-btn" data-cat="bebidas" style="color:#555; background:transparent">Bebidas</button>
+      <button class="mini-btn" data-cat="guarniciones" style="color:#555; background:transparent">Papas</button>
+    </div>
+    <div id="orderGrid"></div>
+    <div style="margin-top:20px; text-align:right">
+      <button class="btn primary" id="btnSaveOrder">Guardar Nuevo Orden</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Control de Stock Rápido</h2>
+    <p class="muted">Activar/Desactivar disponibilidad inmediata.</p>
+    <div id="invList" style="border:1px solid #eee; border-radius:12px; overflow:hidden;"></div>
+  </section>
+</div>
+
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap:24px;">
+  <section class="card">
+    <h2>Configuración de Papas</h2>
+    <p class="muted">Opciones visibles al cliente.</p>
+    <div id="sidesContainer"></div>
+  </section>
+
+  <section class="card">
+    <h2>Cupones de Descuento</h2>
+    <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+      <div><label>Código</label><input id="cpCode" type="text" style="text-transform:uppercase"></div>
+      <div><label>Tipo</label><select id="cpType"><option value="percent">% Porcentaje</option><option value="fixed">$ Monto Fijo</option></select></div>
+      <div><label>Valor</label><input id="cpValue" type="number"></div>
+      <div><label>Max Usos</label><input id="cpMaxUses" type="number"></div>
+      <div style="grid-column:1/-1"><label>Nota interna</label><input id="cpNote" type="text"></div>
+    </div>
+    <button class="btn primary" id="btnCreateCp" style="width:100%">Crear Cupón</button>
+
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Código</th><th>Tipo</th><th>Valor</th><th>Estado</th><th>Acción</th></tr></thead>
+        <tbody id="cpTable"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+</main>
+
+<script>
+// ==========================================
+// 🔥 LÓGICA DE SIMULACIÓN (MOCK DATA)
+// Desconectado de Firebase para usar como demo
+// ==========================================
+
+const $ = s => document.querySelector(s);
+
+let MOCK_DATA = {
+    products: [
+        { id: "b1", name: "Doble Cheese Bacon", category: "hamburguesas", price: 6500, available: true, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&q=80", allowedExtras: {patty:true, cheddar:true} },
+        { id: "b2", name: "Classic Burger", category: "hamburguesas", price: 4800, available: true, img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=100&q=80", allowedExtras: {patty:true, cheddar:true} },
+        { id: "g1", name: "Papas Cheddar y Bacon", category: "guarniciones", price: 3500, available: true, img: "https://images.unsplash.com/photo-1576107232684-1279f390859f?w=100&q=80", potatoOptions: {sazon:true, sal:true, sinSal:true} },
+        { id: "d1", name: "Gaseosa Cola 500ml", category: "bebidas", price: 1500, available: true, img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=100&q=80" }
+    ],
+    coupons: [
+        { id: "DEMO10", code: "DEMO10", type: "percent", value: 10, enabled: true, note: "Para clientes nuevos" },
+        { id: "ENVIOFREE", code: "ENVIOFREE", type: "fixed", value: 1500, enabled: false, note: "Promoción finalizada" }
+    ],
+    sides: { con_sazon: true, con_sal: true, sin_sal: true },
+    menuOrder: { hamburguesas: ["b1", "b2"], guarniciones: ["g1"], bebidas: ["d1"] }
+};
+
+let FILTER_CAT = "all";
+let FILTER_TXT = "";
+let CURRENT_CAT = "hamburguesas";
+
+/* ==========================================
+   RENDERIZADOS PRINCIPALES
+========================================== */
+
+function applyFilters(){
+    const tbody = $('#prdTable');
+    tbody.innerHTML = '';
+    const filtered = MOCK_DATA.products.filter(p => {
+        const matchCat = FILTER_CAT === "all" || p.category === FILTER_CAT;
+        const txt = FILTER_TXT.toLowerCase();
+        const matchTxt = !txt || p.name.toLowerCase().includes(txt) || p.id.toLowerCase().includes(txt);
+        return matchCat && matchTxt;
+    });
+
+    filtered.forEach(p=>{
+        const tr = document.createElement('tr');
+        const imgTag = p.img ? `<img src="${p.img}" class="img-preview">` : `<div class="img-preview"></div>`;
+        const availableTag = p.available ? `<span class="pill ok">Activo</span>` : `<span class="pill off">Pausado</span>`;
+        let exIcons = "";
+        const ex = p.allowedExtras || {};
+        if(ex.patty) exIcons += "🥩 "; if(ex.cheddar) exIcons += "🧀 ";
+        const po = p.potatoOptions || {};
+        if(po.sazon || po.sal || po.sinSal) exIcons += "🍟";
+        if(!exIcons.trim()) exIcons = '<span style="color:#ccc; font-size:12px">-</span>';
+
+        tr.innerHTML = `
+          <td><strong>${p.id}</strong></td> <td>${imgTag}</td> <td>${p.name}</td> <td>${p.category}</td> <td>$${p.price}</td> <td>${exIcons}</td> <td>${availableTag}</td>
+          <td class="row">
+            <button class="mini-btn good" onclick="editProduct('${p.id}')">Editar</button>
+            <button class="mini-btn warn" onclick="toggleProd('${p.id}')">${p.available ? "Pausar" : "Activar"}</button>
+            <button class="mini-btn bad" onclick="delProduct('${p.id}')">Borrar</button>
+          </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function renderInventory(){
+    const invList = $('#invList');
+    invList.innerHTML = '';
+    MOCK_DATA.products.forEach(p=>{
+        const el = document.createElement('div');
+        el.className = "tile";
+        const btnText = p.available ? 'Quitar' : 'Agregar';
+        const btnClass = p.available ? 'bad' : 'good';
+        el.innerHTML = `
+          <div><div style="font-weight:700; font-size:14px">${p.name}</div><div class="muted" style="font-size:12px">${p.category}</div></div>
+          <div class="row">
+            <span class="pill ${p.available?'ok':'off'}">${p.available ? 'OK' : 'X'}</span>
+            <button class="mini-btn ${btnClass}" onclick="toggleProd('${p.id}')">${btnText}</button>
+          </div>`;
+        invList.appendChild(el);
+    });
+}
+
+function renderOrderGrid(){
+  const orderGrid = $("#orderGrid"); orderGrid.innerHTML = "";
+  const list = MOCK_DATA.products.filter(p => p.category === CURRENT_CAT);
+  list.forEach(p=>{
+    const card = document.createElement("div");
+    card.className = "orderCard";
+    card.innerHTML = `
+      <div style="height:100px; background:#f9f9f9; display:flex; align-items:center; justify-content:center; overflow:hidden">
+         <img src="${p.img || ""}" style="width:100%; height:100%; object-fit:cover; display:${p.img?'block':'none'}">
+         <span style="display:${p.img?'none':'block'}; color:#ccc">Sin img</span>
+      </div>
+      <div style="padding:8px; font-weight:700; font-size:13px; text-align:center">${p.name}</div>`;
+    orderGrid.appendChild(card);
+  });
+}
+
+function renderCoupons(){
+    const cpTbody = $("#cpTable"); cpTbody.innerHTML = "";
+    MOCK_DATA.coupons.forEach(c=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td><strong>${c.code}</strong></td><td>${c.type==='percent'?'%':'$'}</td><td>${c.value}</td><td>${c.enabled ? "<span class='pill ok'>ON</span>" : "<span class='pill off'>OFF</span>"}</td>
+        <td class="row">
+            <button class="mini-btn ${c.enabled?'warn':'good'}" onclick="toggleCp('${c.id}')">${c.enabled ? "Pausar" : "Activar"}</button>
+            <button class="mini-btn bad" onclick="delCp('${c.id}')">X</button>
+        </td>`;
+        cpTbody.appendChild(tr);
+    });
+}
+
+function renderSidesUI(){
+  const sidesContainer = $("#sidesContainer"); sidesContainer.innerHTML = '';
+  const meta = [ { key:"con_sazon", label:"Con sazón" }, { key:"con_sal", label:"Con sal" }, { key:"sin_sal", label:"Sin sal" } ];
+  meta.forEach(s=>{
+    const enabled = MOCK_DATA.sides[s.key];
+    const el = document.createElement("div");
+    el.className = "side-pill " + (enabled ? "on" : "off");
+    el.innerHTML = `<div><div style="font-weight:700">${s.label}</div></div><div><button class="mini-btn ${enabled?'bad':'good'}" onclick="toggleSide('${s.key}')">${enabled ? "Desactivar" : "Activar"}</button></div>`;
+    sidesContainer.appendChild(el);
+  });
+}
+
+// Inicializar vistas
+applyFilters(); renderInventory(); renderOrderGrid(); renderCoupons(); renderSidesUI();
+
+/* ==========================================
+   ACCIONES SIMULADAS
+========================================== */
+
+// Productos
+function toggleProd(id) {
+    let p = MOCK_DATA.products.find(x => x.id === id);
+    if(p) { p.available = !p.available; applyFilters(); renderInventory(); }
+}
+function delProduct(id) {
+    if(!confirm("¿Demo: Eliminar " + id + "?")) return;
+    MOCK_DATA.products = MOCK_DATA.products.filter(x => x.id !== id);
+    applyFilters(); renderInventory(); renderOrderGrid();
+}
+function editProduct(id) {
+    let data = MOCK_DATA.products.find(x => x.id === id);
+    $('#prdId').value = data.id; $('#prdName').value = data.name; $('#prdCategory').value = data.category; $('#prdPrice').value = data.price;
+    $('#prdImg').value = data.img || ''; $('#prdDesc').value = data.description || '';
+    $('#prdExPatty').checked = !!(data.allowedExtras && data.allowedExtras.patty);
+    $('#prdExCheddar').checked = !!(data.allowedExtras && data.allowedExtras.cheddar);
+    $('#potatoOptionsGroup').style.display = data.category === 'guarniciones' ? 'block' : 'none';
+    window.scrollTo({top:0, behavior:'smooth'});
+}
+$('#btnSaveProduct').onclick = () => {
+    const id = $('#prdId').value.trim();
+    if(!id){ alert("Ingresá un ID"); return; }
+    let existing = MOCK_DATA.products.find(x => x.id === id);
+    let payload = {
+        id: id, name: $('#prdName').value, category: $('#prdCategory').value, price: Number($('#prdPrice').value),
+        img: $('#prdImg').value, description: $('#prdDesc').value, available: existing ? existing.available : true,
+        allowedExtras: { patty: $('#prdExPatty').checked, cheddar: $('#prdExCheddar').checked }
+    };
+    if(existing) { Object.assign(existing, payload); } else { MOCK_DATA.products.push(payload); }
+    alert("¡Demo: Producto guardado exitosamente!");
+    $('#btnClearProduct').click();
+    applyFilters(); renderInventory(); renderOrderGrid();
+};
+$('#btnClearProduct').onclick = () => {
+    $('#prdId').value = ''; $('#prdName').value = ''; $('#prdCategory').value = 'hamburguesas'; $('#prdPrice').value = ''; $('#prdImg').value = ''; $('#prdDesc').value = '';
+    $('#prdExPatty').checked = false; $('#prdExCheddar').checked = false; $('#potatoOptionsGroup').style.display = 'none';
+};
+
+// Filtros y UI Event Listeners
+$('#prdSearch').addEventListener('input', (e) => { FILTER_TXT = e.target.value; applyFilters(); });
+document.querySelectorAll('#prdFilters .filter-tab').forEach(btn => {
+    btn.onclick = () => { document.querySelectorAll('#prdFilters .filter-tab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); FILTER_CAT = btn.dataset.f; applyFilters(); };
+});
+$('#prdCategory').addEventListener('change', (e) => { $('#potatoOptionsGroup').style.display = e.target.value === 'guarniciones' ? 'block' : 'none'; });
+
+// Tienda (Abrir/Cerrar)
+function updateStoreStatus(status, text) {
+    const pill = $("#storePill"); const sub = $("#storeSub");
+    if(status === 'open') { pill.className = "pill ok"; pill.textContent = "ABIERTO"; sub.textContent = text || "Operación normal"; }
+    else if(status === 'closed') { pill.className = "pill off"; pill.textContent = "CERRADO"; sub.textContent = text || "Cerrado manualmente"; }
+    else if(status === 'maint') { pill.className = "pill warn"; pill.textContent = "MANTENIMIENTO"; sub.textContent = text; }
+}
+$("#btnSimpleOpen").onclick = () => updateStoreStatus('open', "Abierto Manualmente");
+$("#btnSimpleClose").onclick = () => updateStoreStatus('closed', "Cerrado Manualmente");
+$("#btnResetStore").onclick = () => { alert("Demo: Horarios automáticos restablecidos"); updateStoreStatus('open', "Operación normal"); };
+$("#btnSetVacation").onclick = () => { alert("Demo: Vacaciones programadas"); updateStoreStatus('maint', "✈️ CERRADO POR VACACIONES"); };
+$("#btnSetMaint").onclick = () => { alert("Demo: Mantenimiento programado"); updateStoreStatus('maint', "🛠️ EN MANTENIMIENTO"); };
+
+// Extras / Precios
+$("#btnSaveExtras").onclick = () => alert("¡Demo: Precios de extras actualizados!");
+
+// Orden Visual Categorías
+document.querySelectorAll("#orderCatButtons button").forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll("#orderCatButtons button").forEach(b=>{ b.classList.remove("primary"); b.style.color = "#555"; b.style.background = "transparent"; });
+      btn.classList.add("primary"); btn.style.color = "#fff"; btn.style.background = "var(--primary)";
+      CURRENT_CAT = btn.dataset.cat; renderOrderGrid();
+    };
+});
+$("#btnSaveOrder").onclick = () => alert("¡Demo: Nuevo orden visual guardado!");
+
+// Cupones
+$("#btnCreateCp").onclick = () => {
+    const code = $("#cpCode").value.toUpperCase(); if(!code) return alert("Ingresá un código");
+    MOCK_DATA.coupons.push({ id: code, code: code, type: $("#cpType").value, value: Number($("#cpValue").value), enabled: true });
+    alert("¡Demo: Cupón creado!"); $("#cpCode").value = ""; renderCoupons();
+};
+function toggleCp(id) { let c = MOCK_DATA.coupons.find(x => x.id === id); if(c) { c.enabled = !c.enabled; renderCoupons(); } }
+function delCp(id) { MOCK_DATA.coupons = MOCK_DATA.coupons.filter(x => x.id !== id); renderCoupons(); }
+
+// Papas Globales
+function toggleSide(key) { MOCK_DATA.sides[key] = !MOCK_DATA.sides[key]; renderSidesUI(); }
+
+</script>
+</body>
+</html>
