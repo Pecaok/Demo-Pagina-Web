@@ -641,9 +641,7 @@ function autoDetectKind(id, name = "", desc = "") {
   name = (name || "").toLowerCase();
   desc = (desc || "").toLowerCase();
   
-  // Si es un sándwich, evitamos que lo marque como simple por defecto
   if (name.includes("sandwich") || name.includes("sándwich")) return "sandwich";
-  
   if (id.includes("_doble"))  return "doble";
   if (id.includes("_simple")) return "simple";
   if (id.includes("_pollo"))  return "pollo";
@@ -747,10 +745,8 @@ function loadProductIntoForm(data, id){
   $('#prdId').value = id;
   $('#prdName').value = data.name || '';
   
-  // Mapeamos por si tiene una categoría vieja, pero damos soporte a la nueva
   const cat = data.category || 'hamburguesas';
   $('#prdCategory').value = cat;
-  
   $('#prdPrice').value = data.price || '';
   
   editingProductImg = data.img || null;
@@ -1072,17 +1068,32 @@ const maintTo = document.querySelector("#maintTo");
 const btnSetVacation = document.querySelector("#btnSetVacation");
 const btnSetMaint = document.querySelector("#btnSetMaint");
 
+// 1. Funciones de Botones Manuales
 btnSimpleOpen.onclick = async () => {
-    if(!confirm("¿Abrir la tienda manualmente?")) return;
+    if(!confirm("¿Abrir la tienda manualmente? (Ignorará el horario automático)")) return;
     try { await storeRef().set({ forceOpen: true, maintenance: firebase.firestore.FieldValue.delete(), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, {merge: true}); } catch(e) { alert("Error al abrir"); }
 };
+
 btnSimpleClose.onclick = async () => {
+    if(!confirm("¿Cerrar la tienda manualmente? (Ignorará el horario automático)")) return;
     try { await storeRef().set({ forceOpen: false, maintenance: firebase.firestore.FieldValue.delete(), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, {merge: true}); } catch(e) { alert("Error al cerrar"); }
 };
+
 btnResetStore.onclick = async () => {
-    if(!confirm("¿Borrar configuraciones manuales y usar SOLO horario automático?")) return;
-    try { await storeRef().set({ forceOpen: firebase.firestore.FieldValue.delete(), forceOpenMessage: firebase.firestore.FieldValue.delete(), forceOpenUntil: firebase.firestore.FieldValue.delete(), maintenance: firebase.firestore.FieldValue.delete(), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, {merge: true}); alert("Configuración reseteada."); } catch(e) { alert("Error al resetear."); }
+    if(!confirm("¿Borrar configuraciones manuales y usar SOLO horario automático de 19 a 00hs?")) return;
+    try { 
+        await storeRef().set({ 
+            forceOpen: firebase.firestore.FieldValue.delete(), 
+            forceOpenMessage: firebase.firestore.FieldValue.delete(), 
+            forceOpenUntil: firebase.firestore.FieldValue.delete(), 
+            maintenance: firebase.firestore.FieldValue.delete(), 
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp() 
+        }, {merge: true}); 
+        alert("Restablecido a automático."); 
+    } catch(e) { alert("Error al resetear."); }
 };
+
+// 2. Funciones de Mantenimiento
 async function scheduleClosure(type) {
     let title = maintTitle.value.trim();
     const msg = maintMsg.value.trim();
@@ -1099,9 +1110,17 @@ async function scheduleClosure(type) {
 btnSetVacation.onclick = () => scheduleClosure("vacation");
 btnSetMaint.onclick = () => scheduleClosure("maintenance");
 
+// 3. Lógica Visual (Horario Automático de 19 a 00hs)
+let lastStoreData = {};
+
 function applyStoreDocToUI(d) {
     const now = new Date();
-    let isOpen = false; let statusText = "Estado desconocido"; let pillClass = "off"; let maintActive = false;
+    let isOpen = false; 
+    let statusText = "Estado desconocido"; 
+    let pillClass = "off"; 
+    let maintActive = false;
+
+    // A. Evaluar si hay mantenimiento programado activo
     if(d.maintenance && d.maintenance.active) {
         const start = d.maintenance.start.toDate(); const end = d.maintenance.end.toDate();
         maintTitle.value = d.maintenance.title || ""; maintMsg.value = d.maintenance.message || "";
@@ -1112,17 +1131,58 @@ function applyStoreDocToUI(d) {
         else { isOpen = d.forceOpen === true; statusText = "Operación normal"; }
     } else {
         maintTitle.value = ""; maintMsg.value = ""; maintFrom.value = ""; maintTo.value = "";
-        if (d.forceOpen === true) { isOpen = true; statusText = "Abierto Manualmente"; }
-        else if (d.forceOpen === false) { isOpen = false; statusText = "Cerrado Manualmente"; }
-        else { statusText = "Modo Automático (Horarios)"; isOpen = false; pillClass = "blue"; }
+        
+        // B. Lógica de horario automático (19:00 a 23:59)
+        const currentHour = now.getHours();
+        const isAutoOpen = (currentHour >= 19 && currentHour < 24);
+
+        if (d.forceOpen === true) {
+            isOpen = true; 
+            statusText = "Abierto Manualmente (Forzado)"; 
+            pillClass = "ok";
+        } else if (d.forceOpen === false) {
+            isOpen = false; 
+            statusText = "Cerrado Manualmente (Forzado)"; 
+            pillClass = "off";
+        } else {
+            // Si no hay orden manual, usa el automático
+            isOpen = isAutoOpen;
+            statusText = isAutoOpen ? "Abierto Automático (Cierra a las 00:00hs)" : "Cerrado Automático (Abre a las 19:00hs)";
+            pillClass = isAutoOpen ? "ok" : "blue"; 
+        }
     }
-    if(maintActive) { storePill.textContent = "MANTENIMIENTO"; storePill.className = "pill warn"; }
-    else if (d.forceOpen === true) { storePill.textContent = "ABIERTO (MANUAL)"; storePill.className = "pill ok"; }
-    else if (d.forceOpen === false) { storePill.textContent = "CERRADO (MANUAL)"; storePill.className = "pill off"; }
-    else { storePill.textContent = "AUTOMÁTICO"; storePill.className = "pill blue"; }
+
+    // C. Pintar el botón indicador de arriba a la derecha
+    if(maintActive) { 
+        storePill.textContent = "MANTENIMIENTO"; 
+        storePill.className = "pill warn"; 
+    }
+    else if (d.forceOpen === true) { 
+        storePill.textContent = "ABIERTO (MANUAL)"; 
+        storePill.className = "pill ok"; 
+    }
+    else if (d.forceOpen === false) { 
+        storePill.textContent = "CERRADO (MANUAL)"; 
+        storePill.className = "pill off"; 
+    }
+    else { 
+        storePill.textContent = isOpen ? "ABIERTO (AUTO)" : "CERRADO (AUTO)"; 
+        storePill.className = "pill " + pillClass; 
+    }
+    
     storeSub.textContent = statusText;
 }
-storeRef().onSnapshot(snap => { applyStoreDocToUI(snap.exists ? snap.data() : {}); });
+
+// Escuchar cambios de Firebase
+storeRef().onSnapshot(snap => { 
+    lastStoreData = snap.exists ? snap.data() : {};
+    applyStoreDocToUI(lastStoreData); 
+});
+
+// Validar cada 1 minuto (Por si el local cambia de estado automático mientras mirás la pantalla)
+setInterval(() => {
+    applyStoreDocToUI(lastStoreData);
+}, 60000);
 
 /* CUPONES LOGIC */
 const cpTbody = document.querySelector("#cpTable");
