@@ -4,7 +4,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Demo Admin • Panel</title>
+<title>Demo Admin • Rhodes Burgers</title>
+<link rel="icon" href="images/logo.png" />
 
 <style>
 /* ============================================================
@@ -64,6 +65,12 @@ header {
   font-weight: 800;
   font-size: 18px;
   letter-spacing: -0.5px;
+}
+.brand img {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 /* NAVEGACIÓN PRINCIPAL */
@@ -295,23 +302,6 @@ h2 { font-size: 20px; margin: 0 0 10px 0; color: var(--text); }
 }
 </style>
 
-<script>
-  (function checkAuth() {
-      const TTL_HOURS = 20;
-      const TTL_MS = TTL_HOURS * 60 * 60 * 1000;
-      const ok = localStorage.getItem('rb_admin_ok') === 'true';
-      const ts = Number(localStorage.getItem('rb_admin_t') || 0);
-      const live = (Date.now() - ts) < TTL_MS;
-      if (!ok || !live) {
-          localStorage.removeItem('rb_admin_ok');
-          localStorage.removeItem('rb_admin_t');
-          window.location.replace('login.html?next=' + encodeURIComponent(location.pathname + location.search));
-      } else {
-          localStorage.setItem('rb_admin_t', String(Date.now()));
-      }
-  })();
-</script>
-
 </head>
 
 <body>
@@ -319,17 +309,13 @@ h2 { font-size: 20px; margin: 0 0 10px 0; color: var(--text); }
 <header>
   <div class="topbar">
     <a class="brand" href="#">
-      <span style="font-size:24px; margin-right:8px;">⚙️</span>
+      <span style="font-size: 24px;">🍔</span>
       <span>Demo Admin</span>
     </a>
 
     <nav class="nav-right">
-      <a class="nav-link active" href="admin.html">Admin</a>
-      <a class="nav-link" href="stock.html">Stock</a>
-      <a class="nav-link" href="finanzas.html">Finanzas</a>
-      <a class="nav-link" href="pedido_local.html">Pedidos</a>
-      <a class="nav-link" href="mostrador.html">Mostrador</a>
-      <a class="nav-link" href="gerencia.html">📊 Gerencia</a>
+      <a class="nav-link active" href="admin_demo.html">Admin Demo</a>
+      <a class="nav-link" href="pedidos_demo.html">Ver Pedidos Demo</a>
     </nav>
   </div>
 </header>
@@ -339,7 +325,7 @@ h2 { font-size: 20px; margin: 0 0 10px 0; color: var(--text); }
 <section class="card" style="border-left: 4px solid var(--primary);">
   <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
     <div>
-      <h2>Estado de la Tienda</h2>
+      <h2>Estado de la Tienda Demo</h2>
       <div id="storeSub" class="text-small muted">Cargando estado...</div>
     </div>
     <div id="storePill" class="pill off">...</div>
@@ -617,17 +603,19 @@ h2 { font-size: 20px; margin: 0 0 10px 0; color: var(--text); }
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-// 🔥 CONECTADO AL PROYECTO DEMO: fir-f0e7f
+// 🔥 Firebase Config: ACTUALIZADA AL PROYECTO DEMO
 const firebaseConfig = {
   apiKey: "AIzaSyAy8bKPcF7EA0BsLFMerbzzFOr-sDhRin4",
   authDomain: "fir-f0e7f.firebaseapp.com",
   projectId: "fir-f0e7f",
   storageBucket: "fir-f0e7f.firebasestorage.app",
   messagingSenderId: "436473060198",
-  appId: "1:436473060198:web:ea9e7c208758cee29a86a7"
+  appId: "1:436473060198:web:ea9e7c208758cee29a86a7",
+  measurementId: "G-TY1QWHR65P"
 };
 try{ firebase.initializeApp(firebaseConfig); } catch(e){}
 
+// 🔥 FIX DE CONEXIÓN LENTA Y CACHÉ
 const db = firebase.firestore();
 try {
     db.settings({
@@ -653,6 +641,7 @@ function autoDetectKind(id, name = "", desc = "") {
   name = (name || "").toLowerCase();
   desc = (desc || "").toLowerCase();
   
+  // Si es un sándwich, evitamos que lo marque como simple por defecto
   if (name.includes("sandwich") || name.includes("sándwich")) return "sandwich";
   
   if (id.includes("_doble"))  return "doble";
@@ -675,7 +664,7 @@ async function fileToBase64(file){
   });
 }
 
-/* 3. SAVE PRODUCT */
+/* 3. SAVE PRODUCT (ACTUALIZADO) */
 async function saveProduct(){
   const id = $('#prdId').value.trim();
   const name = $('#prdName').value.trim();
@@ -725,7 +714,7 @@ async function saveProduct(){
 
   try{
     await productsCol.doc(id).set(payload, {merge:true});
-    alert("Producto guardado correctamente.");
+    alert("Producto guardado correctamente en la Demo.");
     clearProductForm();
   }catch(e){
     console.error(e);
@@ -733,7 +722,7 @@ async function saveProduct(){
   }
 }
 
-/* 4. CLEAR FORM */
+/* 4. CLEAR FORM (ACTUALIZADO) */
 function clearProductForm(){
   $('#prdId').value = '';
   $('#prdName').value = '';
@@ -753,11 +742,12 @@ function clearProductForm(){
   editingProductImg = null; 
 }
 
-/* 5. LOAD FORM */
+/* 5. LOAD FORM (ACTUALIZADO) */
 function loadProductIntoForm(data, id){
   $('#prdId').value = id;
   $('#prdName').value = data.name || '';
   
+  // Mapeamos por si tiene una categoría vieja, pero damos soporte a la nueva
   const cat = data.category || 'hamburguesas';
   $('#prdCategory').value = cat;
   
@@ -798,7 +788,7 @@ async function toggleProductAvailability(id, current){
   }catch(e){ alert("Error."); }
 }
 
-/* 8. RENDER TABLE */
+/* 8. RENDER TABLE (CON FILTROS Y BÚSQUEDA) */
 let ALL_PRODUCTS_DATA = []; 
 let FILTER_CAT = "all";
 let FILTER_TXT = "";
@@ -898,7 +888,7 @@ $('#prdCategory').addEventListener('change', (e) => {
 
 productsCol.onSnapshot(renderProductsTable);
 
-/* GESTIÓN DE PRECIOS */
+/* GESTIÓN DE PRECIOS DE EXTRAS ACTUALIZADA */
 const pricesRef = db.collection("config").doc("prices");
 
 pricesRef.get().then(doc => {
@@ -1044,7 +1034,7 @@ function renderInventory(snapshot){
 }
 productsCol.onSnapshot(renderInventory);
 
-/* SIDES */
+/* SIDES (PAPAS GLOBALES) */
 const sidesRef = () => db.collection("config").doc("sides");
 const SIDES_META = [ { key:"con_sazon", label:"Con sazón" }, { key:"con_sal", label:"Con sal" }, { key:"sin_sal", label:"Sin sal" } ];
 const sidesContainer = document.querySelector("#sidesContainer");
@@ -1068,7 +1058,7 @@ function renderSidesUI(state){
 }
 sidesRef().onSnapshot(snap=>{ renderSidesUI(snap.exists ? snap.data() : {}); });
 
-/* STORE OVERRIDE */
+/* STORE OVERRIDE LOGIC */
 const storeRef = () => db.collection("config").doc("store");
 const storePill = document.querySelector("#storePill");
 const storeSub = document.querySelector("#storeSub");
@@ -1134,7 +1124,7 @@ function applyStoreDocToUI(d) {
 }
 storeRef().onSnapshot(snap => { applyStoreDocToUI(snap.exists ? snap.data() : {}); });
 
-/* CUPONES */
+/* CUPONES LOGIC */
 const cpTbody = document.querySelector("#cpTable");
 const btnCreateCp = document.querySelector("#btnCreateCp");
 if(btnCreateCp){
