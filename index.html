@@ -16,11 +16,9 @@
     :root{ --primary: #625A45; --bg: #f3f4f6; --card: #ffffff; --ring: #e5e7eb; --text: #1f2937; }
     body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
     
-    /* VISUAL */
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; content-visibility: auto; contain-intrinsic-size: 1px 280px; }
     @media (min-width: 600px) { .grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } }
 
-    /* HEADER */
     header { position: sticky; top: 0; z-index: 1000; background: #fff; border-bottom: 1px solid var(--ring); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     .topbar { max-width: 1200px; margin: 0 auto; height: 60px; padding: 0 12px; display: flex; align-items: center; gap: 10px; }
     .brand { font-weight: 800; font-size: 18px; color: var(--primary); display: flex; align-items: center; text-decoration: none; }
@@ -97,7 +95,7 @@
     
     window.STATE = {
         products: [], menuOrder: {}, 
-        config: { sides: { con_sazon:true, con_sal:true, sin_sal:true }, store: { forceOpen: null, maintenance: {} }, prices: { patty:2800, cheddar:300, onionRings:1600 } },
+        config: { sides: { con_sazon:true, con_sal:true, sin_sal:true }, store: {}, prices: { patty:2800, cheddar:300, onionRings:1600 } },
         cart: { burger:{}, drink:{}, side:{} },
         isOpen: false
     };
@@ -152,26 +150,61 @@
         checkStatus();
     };
 
+    // 🔥 LOGICA ACTUALIZADA DE APERTURA Y CIERRE
     window.checkStatus = function() {
-        const conf = window.STATE.config.store;
+        const conf = window.STATE.config.store || {};
         const blocker = document.getElementById("storeBlocker");
-        
-        if (conf.maintenance?.active) {
+        const now = new Date();
+
+        // 1. Revisar si hay mantenimiento o vacaciones
+        if (conf.maintenance && conf.maintenance.active) {
+            const start = conf.maintenance.start ? conf.maintenance.start.toDate() : new Date(0);
+            const end = conf.maintenance.end ? conf.maintenance.end.toDate() : new Date(0);
+            
+            if (now >= start && now <= end) {
+                blocker.classList.remove("hidden");
+                document.getElementById("blockerTitle").innerText = conf.maintenance.title || "EN MANTENIMIENTO";
+                document.getElementById("blockerMsg").innerText = conf.maintenance.message || "Volvemos pronto.";
+                window.STATE.isOpen = false;
+                return;
+            }
+        }
+
+        let isOpen = false;
+        let label = "CERRADO";
+
+        // 2. Horario automático: de 19:00 a 00:00 hs
+        const currentHour = now.getHours();
+        const isAutoOpen = (currentHour >= 19 && currentHour < 24);
+
+        // 3. Evaluar override manual del admin
+        if (conf.forceOpen === true) {
+            isOpen = true;
+            label = "ABIERTO (Apertura Manual)";
+        } else if (conf.forceOpen === false) {
+            isOpen = false;
+            label = "CERRADO (Cierre Manual)";
+        } else {
+            isOpen = isAutoOpen;
+            label = isOpen ? "ABIERTO hasta 00:00hs" : "CERRADO. Abrimos 19:00hs";
+        }
+
+        // 4. Aplicar visual al blocker de pantalla
+        if (!isOpen) {
             blocker.classList.remove("hidden");
-            document.getElementById("blockerTitle").innerText = conf.maintenance.title || "EN MANTENIMIENTO";
-            return;
+            document.getElementById("blockerTitle").innerText = "LOCAL CERRADO";
+            document.getElementById("blockerMsg").innerText = label;
         } else {
             blocker.classList.add("hidden");
         }
 
-        let isOpen = true; // Forzamos abierto para la demo
-        let label = "ABIERTO (Demo)";
-        
         window.STATE.isOpen = isOpen;
+        
+        // 5. Aplicar visual a la pastilla de arriba
         const pill = document.getElementById("statusPill");
         if(pill) {
-            pill.className = `status-pill status-open`;
-            pill.innerHTML = `<span class="status-main">ABIERTO</span><span class="status-sub" style="font-size:10px">Modo Demo</span>`;
+            pill.className = `status-pill ${isOpen ? 'status-open' : 'status-closed'}`;
+            pill.innerHTML = `<span class="status-main">${isOpen ? 'ABIERTO' : 'CERRADO'}</span><span class="status-sub" style="font-size:10px">${label.replace('ABIERTO ', '').replace('CERRADO. ', '')}</span>`;
         }
     };
   </script>
@@ -298,10 +331,12 @@
                 initFirebase();
             }
         }, 100);
+
+        // Que recalcule el estado cada 1 minuto (por si se hacen las 00:00 mientras el cliente está en la página)
+        setInterval(window.checkStatus, 60000);
     });
 
     function initFirebase() {
-        // 👇 Tu nueva configuración de Firebase Demo
         const firebaseConfig = {
             apiKey: "AIzaSyAy8bKPcF7EA0BsLFMerbzzFOr-sDhRin4",
             authDomain: "fir-f0e7f.firebaseapp.com",
@@ -334,6 +369,12 @@
                 onionRings: Number(d.onionRings)||1600 
             };
         });
+
+        // 🔥 ESCUCHAR LA CONFIGURACIÓN DE LA TIENDA DESDE EL ADMIN
+        db.collection("config").doc("store").onSnapshot(doc => {
+            window.STATE.config.store = doc.data() || {};
+            window.checkStatus();
+        });
     }
 
     // LÓGICA DEL MODAL
@@ -346,6 +387,8 @@
     }
 
     window.openModal = (id) => {
+        if (!window.STATE.isOpen) { alert("El local está cerrado en este momento."); return; }
+        
         const item = window.STATE.products.find(p => p.id === id); if(!item) return;
         const cat = (item.category || "").toLowerCase();
         
@@ -489,10 +532,10 @@
     
     // 🔥 LÓGICA DE ENVÍO DE DEMO AL CAMPO pedido_cliente
     document.getElementById("btnCheckout").onclick = () => { 
+        if (!window.STATE.isOpen) { alert("El local está cerrado. No se pueden enviar pedidos."); return; }
         const itemsCount = Object.keys(window.STATE.cart.burger).length + Object.keys(window.STATE.cart.drink).length + Object.keys(window.STATE.cart.side).length;
         if(itemsCount === 0) return alert("Tu carrito está vacío"); 
         
-        // Oculta el botón y muestra el form para poner el nombre
         document.getElementById("btnCheckout").style.display = 'none';
         document.getElementById("checkoutForm").style.display = 'block';
     }
@@ -504,7 +547,6 @@
         const btn = document.getElementById("btnSendDemoOrder");
         btn.innerText = "Enviando..."; btn.disabled = true;
 
-        // Armamos el array pedido_cliente para que respete tu estructura
         let pedido_cliente = [];
         let totalFinal = 0;
 
@@ -534,7 +576,7 @@
         try {
             await db.collection("pedidos").add({
                 cliente: nombreCliente,
-                pedido_cliente: pedido_cliente, // Tu campo específico
+                pedido_cliente: pedido_cliente,
                 total_pagar: totalFinal,
                 estado: "pendiente",
                 fecha: firebase.firestore.FieldValue.serverTimestamp()
