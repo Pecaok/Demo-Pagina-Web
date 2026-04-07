@@ -3,24 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Demo Resto - Plantilla</title>
+  <title>Rhodes Burgers - Menú</title>
+  <link rel="icon" href="images/logo.png" />
   <meta name="theme-color" content="#625A45" />
+  <meta name="description" content="Las mejores hamburguesas de Escobar. Pedí online.">
+
+  <link rel="preconnect" href="https://firebasestorage.googleapis.com">
+  <link rel="preconnect" href="https://firestore.googleapis.com">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
    
   <style>
-    /* CSS CRÍTICO - Sin cambios, idéntico al tuyo */
+    /* CSS CRÍTICO */
     :root{ --primary: #625A45; --bg: #f3f4f6; --card: #ffffff; --ring: #e5e7eb; --text: #1f2937; }
     body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
     
+    /* VISUAL */
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; content-visibility: auto; contain-intrinsic-size: 1px 280px; }
     @media (min-width: 600px) { .grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } }
 
+    /* HEADER */
     header { position: sticky; top: 0; z-index: 1000; background: #fff; border-bottom: 1px solid var(--ring); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     .topbar { max-width: 1200px; margin: 0 auto; height: 60px; padding: 0 12px; display: flex; align-items: center; gap: 10px; }
     .brand { font-weight: 800; font-size: 18px; color: var(--primary); display: flex; align-items: center; text-decoration: none; }
+    .brand img { width: 32px; height: 32px; border-radius: 6px; margin-right: 8px; }
     .spacer { flex: 1; }
     
     .status-pill { display:inline-flex; flex-direction:column; align-items:center; justify-content:center; min-width:110px; padding:4px 10px; border-radius:12px; background:#f4f4f4; border:1px solid var(--ring); color:#222; text-align:center; line-height: 1.1; font-size: 11px; font-weight: 700; }
@@ -30,7 +38,7 @@
     .container { max-width: 800px; margin: 0 auto; padding: 10px 16px 80px 16px; }
     h2 { font-size: 20px; margin: 25px 0 15px; color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; letter-spacing: -0.5px; }
 
-    .card { background: var(--card); border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid var(--ring); display: flex; flex-direction: column; height: 100%; position: relative; will-change: transform; cursor: pointer; }
+    .card { background: var(--card); border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid var(--ring); display: flex; flex-direction: column; height: 100%; position: relative; will-change: transform; }
     .card:active { transform: scale(0.98); transition: 0.1s; }
     
     .imgwrap { position: relative; width: 100%; padding-top: 75%; background: #f3f4f6; }
@@ -62,6 +70,7 @@
     @media(min-width: 600px) { .overlay { align-items: center; } .modal { border-radius: 20px; } }
     @keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
 
+    /* --- ESTILOS MOSTRADOR APLICADOS AL CLIENTE --- */
     .chip-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
     .chip{ display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f9fafb; border-radius: 99px; cursor: pointer; font-size: 13px; font-weight: 600; border: 2px solid transparent; transition: all 0.2s; }
     .chip:has(input:checked) { background: #e3ebd3; border-color: var(--primary); color: var(--primary); }
@@ -76,29 +85,26 @@
     .btn.primary { background: var(--primary); color: white; }
     .btn.ghost { background: transparent; border: 1px solid #ccc; color: #555; }
     
+    /* SKELETON */
+    .skeleton { background: #e0e0e0; border-radius: 12px; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+    .sk-card { height: 260px; width: 100%; margin-bottom: 10px; }
+    .sk-text { height: 24px; width: 50%; margin: 20px 0 10px; background: #d1d1d1; border-radius: 4px; }
+    
     #storeBlocker.hidden { display: none !important; }
+    #errorMsg { display:none; background:#fee2e2; color:#b91c1c; padding:15px; border-radius:10px; text-align:center; margin-top:20px; font-weight:600; }
   </style>
 
   <script>
-    const CART_KEY = "demo_cart_v1"; 
+    const CACHE_KEY = "rhodes_data_v6"; 
+    const CART_KEY = "rhodes_cart_v5";
+    const PHONE_NUMBER = "543484346113"; 
     
-    // 🔥 ESTADO SIMULADO DESCONECTADO DE FIREBASE
     window.STATE = {
-        products: [
-            { id: "b1", name: "Doble Cheese Bacon", price: 6500, category: "hamburguesas", description: "Dos medallones de carne de 120g, doble cheddar, panceta crujiente y salsa de la casa.", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80", available: true, allowedExtras: {patty: true, cheddar: true} },
-            { id: "b2", name: "Classic Burger", price: 4800, category: "hamburguesas", description: "Medallón simple, lechuga, tomate fresco, cebolla morada y mayonesa.", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80", available: true, allowedExtras: {patty: true, cheddar: true} },
-            { id: "b3", name: "Veggie Crispy", price: 5200, category: "hamburguesas", description: "Medallón de garbanzos frito, rúcula, tomates secos y alioli.", img: "https://images.unsplash.com/photo-1520072959219-c595dc870360?w=500&q=80", available: true, allowedExtras: {patty: false, cheddar: true} },
-            { id: "g1", name: "Papas Cheddar y Bacon", price: 3500, category: "guarniciones", description: "Porción para compartir bañada en cheddar fundido y trozos de panceta.", img: "https://images.unsplash.com/photo-1576107232684-1279f390859f?w=500&q=80", available: true },
-            { id: "d1", name: "Gaseosa Cola 500ml", price: 1500, category: "bebidas", description: "Línea Coca-Cola bien fría.", img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80", available: true }
-        ],
-        menuOrder: { hamburguesas: ["b1", "b2", "b3"], guarniciones: ["g1"], bebidas: ["d1"] }, 
-        config: { 
-            sides: { con_sazon:true, con_sal:true, sin_sal:true }, 
-            store: { forceOpen: true, maintenance: {} }, // 👈 Forzado a abierto para que la demo siempre ande
-            prices: { patty:2800, cheddar:500, onionRings:1600 } 
-        },
+        products: [], menuOrder: {}, 
+        config: { sides: { con_sazon:true, con_sal:true, sin_sal:true }, store: { forceOpen: null, maintenance: {} }, prices: { patty:2800, cheddar:300, onionRings:1600 } },
         cart: { burger:{}, drink:{}, side:{} },
-        isOpen: true
+        isOpen: false
     };
     window.MODAL = { item: null, extras: { patty:0, cheddar:0 } };
 
@@ -118,6 +124,7 @@
         };
 
         const burgers = sortList(window.STATE.products.filter(p => p.category === 'hamburguesas'), 'hamburguesas');
+        const sandwiches = sortList(window.STATE.products.filter(p => p.category === 'sandwiches'), 'sandwiches'); 
         const sides = sortList(window.STATE.products.filter(p => p.category === 'guarniciones'), 'guarniciones');
         const drinks = sortList(window.STATE.products.filter(p => p.category === 'bebidas'), 'bebidas');
 
@@ -127,7 +134,7 @@
                 <div class="card ${p.available===false ? 'soldout' : ''}" onclick="openModal('${p.id}')" data-soldout="${!p.available}">
                     ${p.available===false ? '<div class="soldout-badge">AGOTADO</div>' : ''}
                     <div class="imgwrap">
-                        <img src="${p.img}" loading="lazy" alt="${p.name}" onload="this.classList.add('loaded')">
+                        <img src="${p.img || 'images/logo.png'}" loading="lazy" alt="${p.name}" onload="this.classList.add('loaded')">
                     </div>
                     <div class="content">
                         <h3>${p.name}</h3>
@@ -143,30 +150,64 @@
         };
 
         html += renderSection('Hamburguesas', burgers);
-        html += renderSection('Para Picar', sides);
+        html += renderSection('Sándwiches', sandwiches); 
+        html += renderSection('Guarniciones', sides);
         html += renderSection('Bebidas', drinks);
         container.innerHTML = html;
         checkStatus();
     };
 
     window.checkStatus = function() {
-        window.STATE.isOpen = true; // Demo: siempre abierto
+        const conf = window.STATE.config.store;
+        const now = new Date();
+        const blocker = document.getElementById("storeBlocker");
+        
+        if (conf.maintenance?.active) {
+            blocker.classList.remove("hidden");
+            document.getElementById("blockerTitle").innerText = conf.maintenance.title || "EN MANTENIMIENTO";
+            document.getElementById("blockerMsg").innerText = conf.maintenance.message || "Volvemos pronto.";
+            return;
+        } else {
+            blocker.classList.add("hidden");
+        }
+
+        let isOpen = false; let label = "CERRADO";
+        if (conf.forceOpen === true) { isOpen = true; label = "ABIERTO"; } 
+        else if (conf.forceOpen === false) { isOpen = false; label = "CERRADO"; } 
+        else {
+            const HOURS = { 0: [[19,0,24,0]], 1: [], 2: [], 3: [[19,0,24,0]], 4: [[19,0,24,0]], 5: [[19,0,24,0]], 6: [[19,0,24,0]] };
+            const day = now.getDay();
+            const min = now.getHours() * 60 + now.getMinutes();
+            const todayHours = HOURS[day] || [];
+            for(let slot of todayHours) {
+                if(min >= (slot[0]*60 + slot[1]) && min < (slot[2]*60 + slot[3])) {
+                    isOpen = true; label = `ABIERTO hasta ${slot[2]}:${String(slot[3]).padStart(2,'0')}`; break;
+                }
+            }
+        }
+        window.STATE.isOpen = isOpen;
         const pill = document.getElementById("statusPill");
         if(pill) {
-            pill.className = `status-pill status-open`;
-            pill.innerHTML = `<span class="status-main">ABIERTO</span><span class="status-sub" style="font-size:10px">Recibiendo pedidos (Demo)</span>`;
+            pill.className = `status-pill ${isOpen ? 'status-open' : 'status-closed'}`;
+            pill.innerHTML = `<span class="status-main">${isOpen ? 'ABIERTO' : 'CERRADO'}</span><span class="status-sub" style="font-size:10px">${isOpen ? label.replace('ABIERTO ', '') : 'Horario: 19 a 00hs'}</span>`;
         }
     };
   </script>
 </head>
 <body>
 
+  <div id="storeBlocker" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:99999;color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;">
+    <div style="font-size:60px; margin-bottom: 20px;">🔒</div>
+    <h2 id="blockerTitle" style="color:white;margin:0; font-size: 28px;">LOCAL CERRADO</h2>
+    <p id="blockerMsg" style="color:#ccc; margin-top: 10px; font-size: 16px;">Volvemos pronto.</p>
+  </div>
+
   <header>
     <div class="topbar">
-      <div class="brand">
-        <span style="font-size:20px; margin-right: 5px;">🍔</span>
-        <span style="font-size:16px;">Demo Resto</span>
-      </div>
+      <a href="index.html" class="brand">
+        <img src="images/logo.png" alt="Rhodes" width="32" height="32" />
+        <span style="font-size:16px;">Rhodes</span>
+      </a>
       <div class="spacer"></div>
       <div id="statusPill" class="status-pill status-closed">
         <span class="status-main">...</span>
@@ -179,8 +220,32 @@
   </header>
 
   <main class="container">
-    <div id="menuContainer"></div>
+    <div id="errorMsg">⚠️ La conexión es lenta. <a href="#" onclick="location.reload()" style="color:inherit">Tocá acá para reintentar</a></div>
+    <div id="menuContainer">
+        <div class="skeleton sk-text" style="width:40%"></div>
+        <div class="grid">
+            <div class="skeleton sk-card"></div>
+            <div class="skeleton sk-card"></div>
+            <div class="skeleton sk-card"></div>
+            <div class="skeleton sk-card"></div>
+        </div>
+    </div>
   </main>
+
+  <script>
+    (function() {
+        try {
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached && cached !== "undefined") {
+                const parsed = JSON.parse(cached);
+                window.STATE.products = parsed.products || [];
+                window.STATE.menuOrder = parsed.menuOrder || {};
+                if(parsed.config) window.STATE.config = { ...window.STATE.config, ...parsed.config };
+                window.fastRender();
+            }
+        } catch (e) {}
+    })();
+  </script>
 
   <aside class="drawer" id="drawer">
     <header>
@@ -190,7 +255,7 @@
     <div class="body">
       <div id="cartItems"></div>
       <div class="total">Total: <span id="cartTotal">$0</span></div>
-      <button class="btn primary" id="btnCheckout">Simular Compra</button>
+      <button class="btn primary" id="btnCheckout">Confirmar Pedido</button>
       <button class="btn ghost" style="margin-top:10px" onclick="emptyCart()">Vaciar</button>
     </div>
   </aside>
@@ -241,17 +306,118 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js" defer></script>
+
   <script defer>
+    let db; 
+
     document.addEventListener("DOMContentLoaded", () => {
-        // Inicializar carrito limpio o de sesión anterior (demo)
         const savedCart = localStorage.getItem(CART_KEY);
         if(savedCart) { 
-            window.STATE.cart = JSON.parse(savedCart);
-            updateCartUI(); 
+            const parsedCart = JSON.parse(savedCart);
+            if(Array.isArray(parsedCart.items)) {
+                window.STATE.cart = { burger:{}, drink:{}, side:{} };
+                localStorage.removeItem(CART_KEY);
+            } else {
+                window.STATE.cart = parsedCart; 
+                updateCartUI(); 
+            }
         }
-        window.fastRender(); // Renderizado inmediato sin esperar Firebase
+
+        setTimeout(() => {
+            if(window.STATE.products.length === 0) {
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        }, 6000);
+
+        const checkFirebase = setInterval(() => {
+            if (window.firebase) {
+                clearInterval(checkFirebase);
+                initFirebase();
+            }
+        }, 100);
     });
 
+    function saveToCache() {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            products: window.STATE.products,
+            menuOrder: window.STATE.menuOrder,
+            config: window.STATE.config,
+            timestamp: Date.now()
+        }));
+    }
+
+    function initFirebase() {
+        // 🔥 NUEVA CONFIGURACIÓN DE FIREBASE ACÁ
+        const firebaseConfig = {
+          apiKey: "AIzaSyAy8bKPcF7EA0BsLFMerbzzFOr-sDhRin4",
+          authDomain: "fir-f0e7f.firebaseapp.com",
+          projectId: "fir-f0e7f",
+          storageBucket: "fir-f0e7f.firebasestorage.app",
+          messagingSenderId: "436473060198",
+          appId: "1:436473060198:web:ea9e7c208758cee29a86a7"
+        };
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        
+        db.settings({
+            experimentalForceLongPolling: true, 
+            experimentalAutoDetectLongPolling: false
+        });
+
+        db.enablePersistence({synchronizeTabs:true}).catch(err => {});
+
+        db.collection("products").onSnapshot(snap => {
+            window.STATE.products = [];
+            snap.forEach(doc => {
+                const d = doc.data();
+                if(d.available !== false) window.STATE.products.push({ id: doc.id, ...d });
+            });
+            document.getElementById('errorMsg').style.display = 'none';
+            window.fastRender(); saveToCache();
+        }, err => console.log("Offline mode: ", err));
+
+        db.collection("config").doc("store").onSnapshot(doc => {
+            window.STATE.config.store = doc.data() || {};
+            window.checkStatus(); saveToCache();
+        });
+
+        db.collection("config").doc("sides").onSnapshot(doc => {
+            const d = doc.data() || {};
+            window.STATE.config.sides = { con_sazon: d.con_sazon!==false, con_sal: d.con_sal!==false, sin_sal: d.sin_sal!==false };
+            saveToCache();
+            window.fastRender(); 
+        }, err => console.log("Error sides:", err));
+
+        db.collection("config").doc("menuOrder").onSnapshot(doc => {
+            window.STATE.menuOrder = doc.exists ? doc.data() : {};
+            window.fastRender(); saveToCache();
+        }, err => console.log("Error menuOrder:", err));
+
+        db.collection("config").doc("prices").onSnapshot(doc => {
+            const d = doc.data() || {};
+            window.STATE.config.prices = { 
+                patty: Number(d.patty)||2500, 
+                cheddar: Number(d.cheddar)||300,
+                onionRings: Number(d.onionRings)||1600 
+            };
+            saveToCache();
+            
+            if (window.MODAL && window.MODAL.item) {
+                const pricePattyEl = document.getElementById("pricePattyDisplay");
+                const priceCheddarEl = document.getElementById("priceCheddarDisplay");
+                const priceOnionRingsEl = document.getElementById("lblPriceOnionDisplay");
+                
+                if(pricePattyEl) pricePattyEl.innerText = `(+$${window.STATE.config.prices.patty})`;
+                if(priceCheddarEl) priceCheddarEl.innerText = `(+$${window.STATE.config.prices.cheddar})`;
+                if(priceOnionRingsEl) priceOnionRingsEl.innerText = `(+$${window.STATE.config.prices.onionRings})`;
+                updateModalPrice();
+            }
+        }, err => console.log("Error prices:", err));
+    }
+
+    // 🔥 LOGICA DE MOSTRADOR PARA EL MODAL
     window.toggleSeasoning = function() {
         const type = document.querySelector('input[name="sideType"]:checked')?.value;
         const seasoningSec = document.getElementById('seasoningSection');
@@ -266,19 +432,28 @@
     }
 
     window.openModal = (id) => {
+        if (!window.STATE.isOpen && !window.STATE.config.store.forceOpen) { alert("El local está cerrado en este momento."); return; }
         const item = window.STATE.products.find(p => p.id === id); if(!item) return;
+        
         const cat = (item.category || "").toLowerCase();
         
+        // Si es bebida, se agrega directo al carrito
         if(cat.includes("bebida") || cat.includes("drink")){
-            const cartItem = { item: item, qty: 1, type: 'drink', extras: {}, notes: "", finalPrice: Number(item.price) };
+            const cartItem = {
+                item: item, qty: 1, type: 'drink',
+                extras: {}, notes: "", finalPrice: Number(item.price)
+            };
             const newId = item.id + "_" + Date.now();
             window.STATE.cart.drink[newId] = cartItem;
-            saveCart(); toggleDrawer(true); return;
+            saveCart();
+            toggleDrawer(true);
+            return;
         }
 
         window.MODAL.item = item; window.MODAL.extras = { patty:0, cheddar:0 };
         document.getElementById("modTitle").innerText = "Personalizar " + item.name;
         document.getElementById("modNotes").value = "";
+        
         document.getElementById("qtyPatty").innerText = "0";
         document.getElementById("qtyCheddar").innerText = "0";
         
@@ -290,7 +465,7 @@
         document.querySelectorAll("input[name='sideType']").forEach(x=> x.checked=false);
         document.querySelectorAll("input[name='fries']").forEach(x=> x.checked=false);
 
-        const isBurgerType = cat.includes("burger") || cat.includes("hamburguesa") || cat.includes("sandwich");
+        const isBurgerType = cat.includes("burger") || cat.includes("hamburguesa") || cat.includes("sandwich") || cat.includes("sándwich");
         const allowed = item.allowedExtras || {};
         
         if (isBurgerType) {
@@ -305,6 +480,7 @@
 
         const showExtrasSection = isBurgerType || allowed.patty || allowed.cheddar;
         document.getElementById("extrasSection").style.display = showExtrasSection ? 'block' : 'none';
+        
         document.getElementById("rowPatty").style.display = (allowed.patty || (isBurgerType && allowed.patty !== false)) ? 'flex' : 'none';
         document.getElementById("rowCheddar").style.display = (allowed.cheddar || (isBurgerType && allowed.cheddar !== false)) ? 'flex' : 'none';
 
@@ -313,9 +489,23 @@
         const sidesMap = { con_sazon: "Sazonadas", con_sal: "Con Sal", sin_sal: "Sin Sal" };
         let firstFound = false;
 
+        const pOpts = item.potatoOptions || {};
+        const useGlobal = !pOpts.sazon && !pOpts.sal && !pOpts.sinSal; 
+
         for (const [key, label] of Object.entries(sidesMap)) {
-            const checked = (!isBurgerType && !firstFound) ? 'checked' : ''; firstFound = true;
-            friesContainer.innerHTML += `<label class="chip"><input type="radio" name="fries" value="${key}" onchange="updateModalPrice()" ${checked}> 🍟 ${label}</label>`;
+            let isAllowed = false;
+            if (useGlobal) {
+                isAllowed = window.STATE.config.sides[key];
+            } else {
+                if (key === 'con_sazon') isAllowed = pOpts.sazon;
+                if (key === 'con_sal') isAllowed = pOpts.sal;
+                if (key === 'sin_sal') isAllowed = pOpts.sinSal;
+            }
+
+            if (isAllowed) {
+                const checked = (!isBurgerType && !firstFound) ? 'checked' : ''; firstFound = true;
+                friesContainer.innerHTML += `<label class="chip"><input type="radio" name="fries" value="${key}" onchange="updateModalPrice()" ${checked}> 🍟 ${label}</label>`;
+            }
         }
         
         updateModalPrice();
@@ -338,30 +528,40 @@
         const prices = window.STATE.config.prices;
         total += (window.MODAL.extras.patty * prices.patty);
         total += (window.MODAL.extras.cheddar * prices.cheddar);
+        
         const sideType = document.querySelector('input[name="sideType"]:checked')?.value;
-        if (sideType === 'aros') total += prices.onionRings;
+        if (sideType === 'aros') {
+            total += prices.onionRings;
+        }
+        
         document.getElementById("modTotal").innerText = "$" + total;
     }
 
-    document.getElementById("btnCancel").onclick = () => document.getElementById("modalOverlay").classList.remove("open");
+    document.getElementById("btnCancel").onclick = () => {
+        document.getElementById("modalOverlay").classList.remove("open");
+    };
 
     document.getElementById("btnAddCart").onclick = () => {
         const item = window.MODAL.item;
         const notes = document.getElementById("modNotes").value.trim();
         const cat = (item.category || "").toLowerCase();
-        const isBurgerType = cat.includes("burger") || cat.includes("hamburguesa") || cat.includes("sandwich");
+        const isBurgerType = cat.includes("burger") || cat.includes("hamburguesa") || cat.includes("sandwich") || cat.includes("sándwich");
         
-        let friesStr = ""; let friesRawStr = ""; let sideTypeVal = null;
+        let friesStr = "";
+        let friesRawStr = "";
+        let sideTypeVal = null;
 
         if (isBurgerType) {
             sideTypeVal = document.querySelector('input[name="sideType"]:checked')?.value;
             if (!sideTypeVal) { alert("Seleccioná una guarnición."); return; }
             
             if (sideTypeVal === 'aros') {
-                friesStr = "Aros de Cebolla"; friesRawStr = "aros";
+                friesStr = "Aros de Cebolla";
+                friesRawStr = "aros";
             } else {
                 const seasonRaw = document.querySelector('input[name="fries"]:checked')?.value;
                 if(!seasonRaw) { alert("Seleccioná la preparación de las papas."); return; }
+                
                 const mapSeason = { con_sazon: "Sazonadas", con_sal: "Con sal", sin_sal: "Sin sal" };
                 const typeName = sideTypeVal === 'crinkles' ? 'Papas Crinkles' : 'Papas Rejillas';
                 friesStr = `${typeName} (${mapSeason[seasonRaw]})`;
@@ -371,18 +571,35 @@
             const seasonRaw = document.querySelector('input[name="fries"]:checked')?.value;
             if(!seasonRaw) { alert("Seleccioná la preparación."); return; }
             const mapSeason = { con_sazon: "Sazonadas", con_sal: "Con sal", sin_sal: "Sin sal" };
-            friesStr = mapSeason[seasonRaw]; friesRawStr = seasonRaw;
+            friesStr = mapSeason[seasonRaw];
+            friesRawStr = seasonRaw;
         }
 
         const prices = window.STATE.config.prices;
-        let finalPrice = Number(item.price) + (window.MODAL.extras.patty * prices.patty) + (window.MODAL.extras.cheddar * prices.cheddar);
+        let finalPrice = Number(item.price) + 
+                         (window.MODAL.extras.patty * prices.patty) + 
+                         (window.MODAL.extras.cheddar * prices.cheddar);
+                         
         if (sideTypeVal === 'aros') finalPrice += prices.onionRings;
 
-        const cartItem = { item: item, qty: 1, sideType: sideTypeVal, fries: friesStr, friesRaw: friesRawStr, extras: { ...window.MODAL.extras }, notes: notes, finalPrice: finalPrice };
+        const cartItem = {
+            item: item,
+            qty: 1,
+            sideType: sideTypeVal,
+            fries: friesStr,
+            friesRaw: friesRawStr, 
+            extras: { ...window.MODAL.extras },
+            notes: notes,
+            finalPrice: finalPrice
+        };
+        
         const newId = item.id + "_" + friesRawStr + "_" + Date.now();
         
-        if (cat.includes("guarnicion") || cat.includes("side") || cat.includes("papas")) window.STATE.cart.side[newId] = cartItem;
-        else window.STATE.cart.burger[newId] = cartItem;
+        if (cat.includes("guarnicion") || cat.includes("side") || cat.includes("papas")) {
+            window.STATE.cart.side[newId] = cartItem;
+        } else {
+            window.STATE.cart.burger[newId] = cartItem;
+        }
         
         saveCart();
         document.getElementById("modalOverlay").classList.remove("open");
@@ -392,12 +609,16 @@
     function saveCart() { localStorage.setItem(CART_KEY, JSON.stringify(window.STATE.cart)); updateCartUI(); }
 
     function updateCartUI() {
-        let count = 0; let total = 0;
-        const container = document.getElementById("cartItems"); container.innerHTML = '';
+        let count = 0;
+        let total = 0;
+        const container = document.getElementById("cartItems"); 
+        container.innerHTML = '';
         
         const renderItem = (id, obj, typeStr) => {
-            count += obj.qty; total += obj.finalPrice * obj.qty;
+            count += obj.qty;
+            total += obj.finalPrice * obj.qty;
             let detail = [];
+            
             if (obj.fries) detail.push("🍟 " + obj.fries);
             if(obj.extras && obj.extras.patty) detail.push(`+${obj.extras.patty} Carne`);
             if(obj.extras && obj.extras.cheddar) detail.push(`+${obj.extras.cheddar} Cheddar`);
@@ -410,7 +631,7 @@
                         <div style="font-size:12px;color:#666">${detail.join(" • ")}</div>
                         <div style="color:var(--primary);font-weight:700">$${obj.finalPrice}</div>
                     </div>
-                    <div class="qtybox" style="display:flex; align-items:center; gap:5px;">
+                    <div class="qtybox">
                         <button class="qtybtn" onclick="cartQty('${typeStr}', '${id}', -1)">-</button>
                         <span style="width:20px;text-align:center;font-weight:700">${obj.qty}</span>
                         <button class="qtybtn" onclick="cartQty('${typeStr}', '${id}', 1)">+</button>
@@ -421,9 +642,11 @@
 
         for(let id in window.STATE.cart.burger) container.innerHTML += renderItem(id, window.STATE.cart.burger[id], 'burger');
         for(let id in window.STATE.cart.side) container.innerHTML += renderItem(id, window.STATE.cart.side[id], 'side');
+        
         for(let id in window.STATE.cart.drink){
             const d = window.STATE.cart.drink[id];
-            count += d.qty; total += d.finalPrice * d.qty;
+            count += d.qty;
+            total += d.finalPrice * d.qty;
             container.innerHTML += `
                 <div class="item">
                     <div style="flex:1">
@@ -431,7 +654,7 @@
                         <div style="font-size:12px;color:#666">Bebida</div>
                         <div style="color:var(--primary);font-weight:700">$${d.finalPrice}</div>
                     </div>
-                    <div class="qtybox" style="display:flex; align-items:center; gap:5px;">
+                    <div class="qtybox">
                         <button class="qtybtn" onclick="cartQty('drink', '${id}', -1)">-</button>
                         <span style="width:20px;text-align:center;font-weight:700">${d.qty}</span>
                         <button class="qtybtn" onclick="cartQty('drink', '${id}', 1)">+</button>
@@ -443,27 +666,59 @@
         document.getElementById("cartBubble").innerText = count;
         document.getElementById("cartBubble").style.display = count > 0 ? 'inline-block' : 'none';
         document.getElementById("cartTotal").innerText = "$" + total;
-        if(count === 0) container.innerHTML = `<span class="muted" style="display:block; text-align:center; padding-top:20px">Carrito vacío.</span>`;
+        
+        if(count === 0) {
+            container.innerHTML = `<span class="muted" style="display:block; text-align:center; padding-top:20px">Carrito vacío.</span>`;
+        }
     }
 
     window.cartQty = (type, id, delta) => {
-        const item = window.STATE.cart[type][id]; item.qty += delta;
-        if(item.qty <= 0) delete window.STATE.cart[type][id]; saveCart();
+        const item = window.STATE.cart[type][id];
+        item.qty += delta;
+        if(item.qty <= 0) delete window.STATE.cart[type][id];
+        saveCart();
     }
 
-    window.emptyCart = () => { window.STATE.cart = { burger:{}, drink:{}, side:{} }; saveCart(); }
+    window.emptyCart = () => { 
+        if(confirm("¿Vaciar carrito?")) { 
+            window.STATE.cart = { burger:{}, drink:{}, side:{} }; 
+            saveCart(); 
+            toggleDrawer(false); 
+        } 
+    }
     window.toggleDrawer = (open) => { const d = document.getElementById("drawer"); if(open) { d.classList.add("open"); updateCartUI(); } else d.classList.remove("open"); }
     document.getElementById("modalOverlay").onclick = (e) => { if(e.target.id === "modalOverlay") document.getElementById("modalOverlay").classList.remove("open"); }
     
-    // 🔥 BOTON DE COMPRA SIMULADO (Demo)
+    // Al confirmar, manda a tu lógica existente en pedido_cliente.html
     document.getElementById("btnCheckout").onclick = () => { 
         const itemsCount = Object.keys(window.STATE.cart.burger).length + Object.keys(window.STATE.cart.drink).length + Object.keys(window.STATE.cart.side).length;
         if(itemsCount === 0) return alert("Tu carrito está vacío"); 
         
-        // En lugar de ir a tu lógica de 'pedido_cliente', tiramos un mensaje de éxito para el cliente
-        alert("¡Éxito! 🎉\n\nEste es el modo DEMO. En una versión real, al tocar este botón el pedido viajaría directamente al panel de administración del restaurante.");
-        window.emptyCart();
-        toggleDrawer(false);
+        let legacyCart = { items: [] };
+        
+        const convertToLegacy = (id, obj, typeStr) => {
+            legacyCart.items.push({
+                id: obj.item.id,
+                name: obj.item.name,
+                price: Number(obj.item.price),
+                category: obj.item.category,
+                qty: obj.qty,
+                fries: obj.fries,
+                friesRaw: obj.friesRaw,
+                sideType: obj.sideType,
+                extras: obj.extras,
+                notes: obj.notes,
+                finalPrice: obj.finalPrice,
+                type: typeStr
+            });
+        };
+        
+        for(let id in window.STATE.cart.burger) convertToLegacy(id, window.STATE.cart.burger[id], 'burger');
+        for(let id in window.STATE.cart.side) convertToLegacy(id, window.STATE.cart.side[id], 'side');
+        for(let id in window.STATE.cart.drink) convertToLegacy(id, window.STATE.cart.drink[id], 'drink');
+        
+        localStorage.setItem("rhodes_cart_legacy_format", JSON.stringify(legacyCart));
+        window.location.href = "pedido_cliente.html"; 
     }
   </script>
 </body>
