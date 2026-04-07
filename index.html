@@ -3,10 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Rhodes Burgers - Menú</title>
-  <link rel="icon" href="images/logo.png" />
+  <title>Demo Resto - Menú</title>
   <meta name="theme-color" content="#625A45" />
-  <meta name="description" content="Las mejores hamburguesas de Escobar. Pedí online.">
+  <meta name="description" content="Plantilla demo para restaurantes y locales de comida.">
 
   <link rel="preconnect" href="https://firebasestorage.googleapis.com">
   <link rel="preconnect" href="https://firestore.googleapis.com">
@@ -28,7 +27,6 @@
     header { position: sticky; top: 0; z-index: 1000; background: #fff; border-bottom: 1px solid var(--ring); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     .topbar { max-width: 1200px; margin: 0 auto; height: 60px; padding: 0 12px; display: flex; align-items: center; gap: 10px; }
     .brand { font-weight: 800; font-size: 18px; color: var(--primary); display: flex; align-items: center; text-decoration: none; }
-    .brand img { width: 32px; height: 32px; border-radius: 6px; margin-right: 8px; }
     .spacer { flex: 1; }
     
     .status-pill { display:inline-flex; flex-direction:column; align-items:center; justify-content:center; min-width:110px; padding:4px 10px; border-radius:12px; background:#f4f4f4; border:1px solid var(--ring); color:#222; text-align:center; line-height: 1.1; font-size: 11px; font-weight: 700; }
@@ -96,13 +94,12 @@
   </style>
 
   <script>
-    const CACHE_KEY = "rhodes_data_v6"; 
-    const CART_KEY = "rhodes_cart_v5";
-    const PHONE_NUMBER = "543484346113"; 
+    const CACHE_KEY = "demo_data_v1"; 
+    const CART_KEY = "demo_cart_v1";
     
     window.STATE = {
         products: [], menuOrder: {}, 
-        config: { sides: { con_sazon:true, con_sal:true, sin_sal:true }, store: { forceOpen: null, maintenance: {} }, prices: { patty:2800, cheddar:300, onionRings:1600 } },
+        config: { sides: { con_sazon:true, con_sal:true, sin_sal:true }, store: { forceOpen: null, maintenance: {} }, prices: { patty:2500, cheddar:500, onionRings:1500 } },
         cart: { burger:{}, drink:{}, side:{} },
         isOpen: false
     };
@@ -134,7 +131,7 @@
                 <div class="card ${p.available===false ? 'soldout' : ''}" onclick="openModal('${p.id}')" data-soldout="${!p.available}">
                     ${p.available===false ? '<div class="soldout-badge">AGOTADO</div>' : ''}
                     <div class="imgwrap">
-                        <img src="${p.img || 'images/logo.png'}" loading="lazy" alt="${p.name}" onload="this.classList.add('loaded')">
+                        <img src="${p.img || 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80'}" loading="lazy" alt="${p.name}" onload="this.classList.add('loaded')">
                     </div>
                     <div class="content">
                         <h3>${p.name}</h3>
@@ -205,8 +202,8 @@
   <header>
     <div class="topbar">
       <a href="index.html" class="brand">
-        <img src="images/logo.png" alt="Rhodes" width="32" height="32" />
-        <span style="font-size:16px;">Rhodes</span>
+        <span style="font-size:24px; margin-right:8px;">🍔</span>
+        <span style="font-size:16px;">Demo Resto</span>
       </a>
       <div class="spacer"></div>
       <div id="statusPill" class="status-pill status-closed">
@@ -349,7 +346,7 @@
     }
 
     function initFirebase() {
-        // 🔥 NUEVA CONFIGURACIÓN DE FIREBASE ACÁ
+        // 🔥 CONECTADO AL PROYECTO DEMO: fir-f0e7f
         const firebaseConfig = {
           apiKey: "AIzaSyAy8bKPcF7EA0BsLFMerbzzFOr-sDhRin4",
           authDomain: "fir-f0e7f.firebaseapp.com",
@@ -399,8 +396,8 @@
             const d = doc.data() || {};
             window.STATE.config.prices = { 
                 patty: Number(d.patty)||2500, 
-                cheddar: Number(d.cheddar)||300,
-                onionRings: Number(d.onionRings)||1600 
+                cheddar: Number(d.cheddar)||500,
+                onionRings: Number(d.onionRings)||1500 
             };
             saveToCache();
             
@@ -417,7 +414,6 @@
         }, err => console.log("Error prices:", err));
     }
 
-    // 🔥 LOGICA DE MOSTRADOR PARA EL MODAL
     window.toggleSeasoning = function() {
         const type = document.querySelector('input[name="sideType"]:checked')?.value;
         const seasoningSec = document.getElementById('seasoningSection');
@@ -437,7 +433,6 @@
         
         const cat = (item.category || "").toLowerCase();
         
-        // Si es bebida, se agrega directo al carrito
         if(cat.includes("bebida") || cat.includes("drink")){
             const cartItem = {
                 item: item, qty: 1, type: 'drink',
@@ -689,7 +684,6 @@
     window.toggleDrawer = (open) => { const d = document.getElementById("drawer"); if(open) { d.classList.add("open"); updateCartUI(); } else d.classList.remove("open"); }
     document.getElementById("modalOverlay").onclick = (e) => { if(e.target.id === "modalOverlay") document.getElementById("modalOverlay").classList.remove("open"); }
     
-    // Al confirmar, manda a tu lógica existente en pedido_cliente.html
     document.getElementById("btnCheckout").onclick = () => { 
         const itemsCount = Object.keys(window.STATE.cart.burger).length + Object.keys(window.STATE.cart.drink).length + Object.keys(window.STATE.cart.side).length;
         if(itemsCount === 0) return alert("Tu carrito está vacío"); 
@@ -717,6 +711,7 @@
         for(let id in window.STATE.cart.side) convertToLegacy(id, window.STATE.cart.side[id], 'side');
         for(let id in window.STATE.cart.drink) convertToLegacy(id, window.STATE.cart.drink[id], 'drink');
         
+        // MANTENIDO PARA COMPATIBILIDAD CON PEDIDO_CLIENTE.HTML
         localStorage.setItem("rhodes_cart_legacy_format", JSON.stringify(legacyCart));
         window.location.href = "pedido_cliente.html"; 
     }
